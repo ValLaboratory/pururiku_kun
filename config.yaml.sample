@@ -1,0 +1,5 @@
+GITHUB_USER: xxxxx
+GITHUB_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+OWNER: xxxxx
+REPO: xxxxxx
+WEBHOOK_URL: https://hooks.slack.com/services/xxxxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxxxxxx

@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'json'
+
+CONFIG = YAML.load_file(ARGV.first)
+GITHUB_USER, GITHUB_TOKEN, OWNER, REPO, WEBHOOK_URL = CONFIG.values_at("GITHUB_USER", "GITHUB_TOKEN", "OWNER", "REPO", "WEBHOOK_URL")
+
+def pulls
+  JSON.parse(`curl -s -u "#{GITHUB_USER}:#{GITHUB_TOKEN}" https://api.github.com/repos/#{OWNER}/#{REPO}/pulls&state=open`)
+end
+
+def reactions(number)
+  JSON.parse(`curl -s -u "#{GITHUB_USER}:#{GITHUB_TOKEN}" -H "Accept: application/vnd.github.squirrel-girl-preview" https://api.github.com/repos/#{OWNER}/#{REPO}/issues/#{number}/reactions`)
+end
+
+def labels(number)
+  JSON.parse(`curl -s -u "#{GITHUB_USER}:#{GITHUB_TOKEN}" https://api.github.com/repos/#{OWNER}/#{REPO}/issues/#{number}/labels`)
+end
+
+def post(message)
+  `curl -s -H "Content-Type: application/json" -X POST -d '{"text":"#{message}"}' #{WEBHOOK_URL}`
+end
+
+messages = pulls.map do |pull|
+  number, title, html_url, user = pull["number"], pull["title"], pull["html_url"], pull["user"]["login"]
+  states = labels(number).map{|label| "`#{label["name"]}`"}.join(" ")
+  marks = reactions(number).map{|reaction| ":#{reaction["content"]}:(#{reaction["user"]["login"]})"}.join(", ")
+
+  [
+    %(> *#{title}* #{states}),
+    %(> #{html_url}),
+    %(> ),
+    %(> owner: #{user}),
+    %(> reactions: [#{marks}]),
+  ].join('\n')
+end
+
+p messages
+
+if messages.empty?
+  post("今出ているPull Requestはありません。")
+else
+  post("#{messages.size}件のPull Requestが出ています。")
+  messages.each do |message|
+    post(message)
+  end
+end
+
