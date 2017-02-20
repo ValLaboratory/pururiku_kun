@@ -18,6 +18,17 @@ def labels(number)
   JSON.parse(`curl -s -u "#{GITHUB_USER}:#{GITHUB_TOKEN}" https://api.github.com/repos/#{OWNER}/#{REPO}/issues/#{number}/labels`)
 end
 
+def to_emoji(reaction)
+  case reaction
+  when "laugh"
+    "smile"
+  when "hooray"
+    "tada"
+  else
+    reaction
+  end
+end
+
 def post(message)
   `curl -s -H "Content-Type: application/json" -X POST -d '{"text":"#{message}"}' #{WEBHOOK_URL}`
 end
@@ -25,7 +36,7 @@ end
 messages = pulls.map do |pull|
   number, title, html_url, user = pull["number"], pull["title"], pull["html_url"], pull["user"]["login"]
   states = labels(number).map{|label| "`#{label["name"]}`"}.join(" ")
-  marks = reactions(number).map{|reaction| ":#{reaction["content"]}:(#{reaction["user"]["login"]})"}.join(", ")
+  marks = reactions(number).map{|reaction| ":#{to_emoji(reaction["content"])}:(#{reaction["user"]["login"]})"}.join(", ")
 
   [
     %(> *#{title}* #{states}),
