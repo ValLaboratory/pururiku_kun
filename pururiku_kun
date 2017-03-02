@@ -29,6 +29,15 @@ def to_emoji(reaction)
   end
 end
 
+def image_url(key)
+  %w[
+    http://3.bp.blogspot.com/-f7RP4FBbHHs/WKbKWONd1UI/AAAAAAABB0Y/xIurZIPrtPgV7X-yDbavc4v98DcYZ8onQCLcB/s800/character_computer_screen_hakase.png
+    http://2.bp.blogspot.com/-wg1XBbsYtQ4/U1T3p1v7o3I/AAAAAAAAfUg/A8XE8Wj1ahA/s800/figure_happy.png
+    http://1.bp.blogspot.com/-PNcKwFw1PpM/U1T3oDIr9CI/AAAAAAAAfT4/gEn86X8Ppx0/s800/figure_goodjob.png
+    http://4.bp.blogspot.com/-WOvX4GkiSEo/U1T3wVr3ovI/AAAAAAAAfWg/RpbQYAHDo2Y/s800/figure_shock.png
+  ].find{|url| url.include?(key)}
+end
+
 def post(text, options = {}) 
   query = options.merge(text: text).map{|k, v| %("#{k}":"#{v}")}.join(",")
 
@@ -52,11 +61,13 @@ end
 p messages
 
 if messages.empty?
-  post("今出ているPull Requestはありません。")
+  post("今出ているPull Requestはありません。", username: 'プルリク君', icon_url: image_url('figure_happy'))
 else
-  post("#{messages.size}件のPull Requestが出ています。")
-  messages.each do |message|
-    post(message)
-  end
+  text = [
+    "#{messages.size}件のPull Requestが出ています。",
+    *messages,
+  ].join('\n\n')
+
+  post(text, username: 'プルリク君', icon_url: image_url('figure_shock'))
 end
 
