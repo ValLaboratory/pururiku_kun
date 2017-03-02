@@ -29,8 +29,10 @@ def to_emoji(reaction)
   end
 end
 
-def post(message)
-  `curl -s -H "Content-Type: application/json" -X POST -d '{"text":"#{message}"}' #{WEBHOOK_URL}`
+def post(text, options = {}) 
+  query = options.merge(text: text).map{|k, v| %("#{k}":"#{v}")}.join(",")
+
+  `curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL}`
 end
 
 messages = pulls.map do |pull|
