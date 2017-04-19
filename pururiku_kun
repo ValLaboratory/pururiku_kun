@@ -64,7 +64,9 @@ end
 def post(text, options = {}) 
   query = options.merge(text: text).map{|k, v| %("#{k}":"#{v}")}.join(",")
 
-  `curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL}`
+  puts      %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' <WEBHOOK_URL>)
+  command = %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL})
+  system command
 end
 
 messages = pulls.map do |pull|
