@@ -88,13 +88,13 @@ end
 p messages
 
 if messages.empty?
-  post("今出ているPull Requestはありません。", username: 'プルリク君', icon_url: image_url('figure_happy'))
+  post("今出ているPull Requestはありません。", username: 'プルリクくん', icon_url: image_url('figure_happy'))
 else
   text = [
     "#{messages.size}件のPull Requestが出ています。",
     *messages,
   ].join('\n\n')
 
-  post(text, username: 'プルリク君', icon_url: random_image_url)
+  post(text, username: 'プルリクくん', icon_url: random_image_url)
 end
 
