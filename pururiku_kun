@@ -59,10 +59,12 @@ def random_image_url
   images.sample
 end
 
+def escape_json_text(text)
+  text.gsub('"', '\"')
 end
 
 def post(text, options = {}) 
-  query = options.merge(text: text).map{|k, v| %("#{k}":"#{v}")}.join(",")
+  query = options.merge(text: escape_json_text(text)).map{|k, v| %("#{k}":"#{v}")}.join(",")
 
   puts      %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' <WEBHOOK_URL>)
   command = %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL})
