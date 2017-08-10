@@ -4,7 +4,8 @@ require 'yaml'
 require 'json'
 
 CONFIG = YAML.load_file(ARGV.first)
-GITHUB_USER, GITHUB_TOKEN, OWNER, REPO, WEBHOOK_URL = CONFIG.values_at("GITHUB_USER", "GITHUB_TOKEN", "OWNER", "REPO", "WEBHOOK_URL")
+GITHUB_USER, GITHUB_TOKEN, OWNER, REPO, WEBHOOK_URL, NAME_SUFFIX, ICONS, MESSAGE_FORMAT_EMPTY, MESSAGE_FORMAT_EXIST =
+  CONFIG.values_at("GITHUB_USER", "GITHUB_TOKEN", "OWNER", "REPO", "WEBHOOK_URL", "NAME_SUFFIX", "ICONS", "MESSAGE_FORMAT_EMPTY", "MESSAGE_FORMAT_EXIST")
 
 def pulls
   JSON.parse(`curl -s -u "#{GITHUB_USER}:#{GITHUB_TOKEN}" https://api.github.com/repos/#{OWNER}/#{REPO}/pulls&state=open`)
@@ -29,36 +30,6 @@ def to_emoji(reaction)
   end
 end
 
-def all_images
-  %w[
-    http://2.bp.blogspot.com/-wg1XBbsYtQ4/U1T3p1v7o3I/AAAAAAAAfUg/A8XE8Wj1ahA/s800/figure_happy.png
-  ].concat(images)
-end
-
-def images
-  %w[
-    http://1.bp.blogspot.com/-PNcKwFw1PpM/U1T3oDIr9CI/AAAAAAAAfT4/gEn86X8Ppx0/s800/figure_goodjob.png
-    http://4.bp.blogspot.com/-WOvX4GkiSEo/U1T3wVr3ovI/AAAAAAAAfWg/RpbQYAHDo2Y/s800/figure_shock.png
-    http://2.bp.blogspot.com/-GTehUXjRQoo/U1T3o3WEKYI/AAAAAAAAfUY/BrptEJWip5U/s800/figure_graph_up.png
-    http://3.bp.blogspot.com/-SGi1KmhebnY/U1T3l-Z2TRI/AAAAAAAAfTQ/HEuVFp4SkFM/s800/figure_box_carrying.png
-    http://4.bp.blogspot.com/-OXQHFRvi8N0/U1T3qRl2VQI/AAAAAAAAfUw/KzxlZSaD3q4/s800/figure_mail.png
-    http://1.bp.blogspot.com/-A7-vqS6N7UE/U1T3wJHuVbI/AAAAAAAAfWY/iMVPwcUxZTw/s800/figure_ta-da.png
-    http://2.bp.blogspot.com/-5VoXT_gDyHg/U1T3sISRjNI/AAAAAAAAfVQ/tk1I-1PLqLo/s800/figure_reading.png
-    http://4.bp.blogspot.com/-GtjTLp56u_0/VJ6XZcw50aI/AAAAAAAAqKU/4oPlYcWPNoA/s800/figure_hakusyu.png
-    http://1.bp.blogspot.com/-flCQBhvvg6U/V6BP7KK5RdI/AAAAAAAA830/exz5qqb8M0U-hyss5tb4p6St5nF9aq0-wCLcB/s800/figure_ouen.png
-    http://1.bp.blogspot.com/-SP3zTtFt1qU/V1z80WGmYdI/AAAAAAAA7Mc/rMVr3LPEPms-K4EWZ9pS3T9n90TqImI6QCLcB/s800/character_egypt_medjed.png
-    http://4.bp.blogspot.com/-Vqz0vge7gzI/WI1zZpBXEMI/AAAAAAABBYc/Eg8I0KSOgikrkB5Q29D3CWli8i8mn_UtQCLcB/s800/dorei_kyousei_roudou.png
-  ]
-end
-
-def image_url(key)
-  all_images.find{|url| url.include?(key)}
-end
-
-def random_image_url
-  images.sample
-end
-
 def escape_json_text(text)
   text.gsub('"', '\"')
 end
@@ -67,8 +38,10 @@ def post(text, options = {})
   query = options.merge(text: escape_json_text(text)).map{|k, v| %("#{k}":"#{v}")}.join(",")
 
   puts      %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' <WEBHOOK_URL>)
-  command = %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL})
-  system command
+  if WEBHOOK_URL
+    command = %(curl -s -H "Content-Type: application/json" -X POST -d '{#{query}}' #{WEBHOOK_URL})
+    system command
+  end
 end
 
 messages = pulls.map do |pull|
@@ -86,15 +59,19 @@ messages = pulls.map do |pull|
 end
 
 p messages
+p WEBHOOK_URL: WEBHOOK_URL
 
-if messages.empty?
-  post("今出ているPull Requestはありません。", username: 'プルリクくん', icon_url: image_url('figure_happy'))
-else
-  text = [
-    "#{messages.size}件のPull Requestが出ています。",
-    *messages,
-  ].join('\n\n')
+format = if messages.empty?
+           MESSAGE_FORMAT_EMPTY
+         else
+           MESSAGE_FORMAT_EXIST
+         end
+name, icon = ICONS.sample
 
-  post(text, username: 'プルリクくん', icon_url: random_image_url)
-end
+text = [
+  sprintf(format, count: messages.size),
+  *messages,
+].join('\n\n')
+
+post(text, username: name, icon_url: icon)
 

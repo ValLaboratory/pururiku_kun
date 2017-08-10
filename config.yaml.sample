@@ -3,3 +3,7 @@ GITHUB_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 OWNER: xxxxx
 REPO: xxxxxx
 WEBHOOK_URL: https://hooks.slack.com/services/xxxxxxxxx/xxxxxxxxx/xxxxxxxxxxxxxxxxxxxxxxxx
+ICONS:
+  - ["プルリクくん", "http://2.bp.blogspot.com/-wg1XBbsYtQ4/U1T3p1v7o3I/AAAAAAAAfUg/A8XE8Wj1ahA/s800/figure_happy.png"]
+MESSAGE_FORMAT_EMPTY: "今出ているPull Requestはありません。"
+MESSAGE_FORMAT_EXIST: "%<count>s件のPull Requestが出ています。"
